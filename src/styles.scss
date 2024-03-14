@@ -1,0 +1,173 @@
+@use "@angular/material" as mat;
+@use "@angular/material-experimental" as matx;
+@use "sass:map";
+
+@include mat.core();
+
+$palettes: (
+  "red": matx.$m3-red-palette,
+  "green": matx.$m3-green-palette,
+  "blue": matx.$m3-blue-palette,
+  "yellow": matx.$m3-yellow-palette,
+  "cyan": matx.$m3-cyan-palette,
+  "magenta": matx.$m3-magenta-palette,
+  "orange": matx.$m3-orange-palette,
+  "chartreuse": matx.$m3-chartreuse-palette,
+  "azure": matx.$m3-azure-palette,
+  "rose": matx.$m3-rose-palette,
+);
+
+$theme-map: ();
+
+// generates theme variables for each color and theme type combination and merges them into $theme-map
+// output: $theme-map contains mappings of theme names to color themes for each palette in both dark and light modes
+@each $theme in ("dark", "light") {
+  @each $color, $palette in $palettes {
+    $theme-name: "m3-#{$color}-#{$theme}-theme";
+    $theme-map: map.merge(
+      $theme-map,
+      (
+        $theme-name:
+          matx.define-theme(
+            (
+              color: (
+                theme-type: $theme,
+                primary: $palette,
+              ),
+            )
+          ),
+      )
+    );
+  }
+}
+
+// default theme (dark)
+$m3-violet-dark-theme: matx.define-theme(
+  (
+    color: (
+      theme-type: dark,
+      primary: matx.$m3-violet-palette,
+    ),
+    // add density only for default theme config to avoid duplicated theming styles
+    density:
+      (
+        scale: -1,
+      ),
+  )
+);
+
+// default light theme
+$m3-violet-light-theme: matx.define-theme(
+  (
+    color: (
+      theme-type: light,
+      primary: matx.$m3-violet-palette,
+    ),
+  )
+);
+
+@mixin themable-styles($theme) {
+  .tonal {
+    background-color: mat.get-theme-color($theme, secondary-container);
+    color: mat.get-theme-color($theme, on-secondary-container);
+  }
+
+  .filled-table {
+    --mat-table-row-item-outline-color: mat.get-theme-color($theme, on-secondary-container);
+    background-color: mat.get-theme-color($theme, secondary-container);
+    color: mat.get-theme-color($theme, on-secondary-container);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: mat.get-theme-color($theme, secondary-container) transparent;
+  }
+
+  // Button color variants
+  .secondary-button {
+    @include mat.button-color($theme, $color-variant: secondary);
+  }
+
+  .tertiary-button {
+    @include mat.button-color($theme, $color-variant: tertiary);
+  }
+
+  .warn-button {
+    @include mat.button-color($theme, $color-variant: error);
+  }
+
+  // Icon color variants
+  .primary-icon {
+    @include mat.icon-color($theme, $color-variant: primary);
+  }
+
+  .secondary-icon {
+    @include mat.icon-color($theme, $color-variant: secondary);
+  }
+
+  .tertiary-icon {
+    @include mat.icon-color($theme, $color-variant: tertiary);
+  }
+
+  .warn-icon {
+    @include mat.icon-color($theme, $color-variant: error);
+  }
+}
+
+html {
+  @include mat.all-component-themes($m3-violet-dark-theme);
+
+  &.violet-dark {
+    @include themable-styles($m3-violet-dark-theme);
+  }
+
+  &.violet-light {
+    @include mat.all-component-colors($m3-violet-light-theme);
+    @include themable-styles($m3-violet-light-theme);
+  }
+
+  @each $color, $palette in $palettes {
+    &.#{$color}-dark {
+      @include mat.all-component-colors(map-get($theme-map, "m3-#{$color}-dark-theme"));
+      @include themable-styles(map-get($theme-map, "m3-#{$color}-dark-theme"));
+    }
+
+    &.#{$color}-light {
+      @include mat.all-component-colors(map-get($theme-map, "m3-#{$color}-light-theme"));
+      @include themable-styles(map-get($theme-map, "m3-#{$color}-light-theme"));
+    }
+  }
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+.sidebar-link {
+  --mdc-list-list-item-container-shape: 9999px;
+}
+
+.flex-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.sections-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+}
+
+mat-form-field {
+  width: 100%;
+  max-width: 400px;
+}
